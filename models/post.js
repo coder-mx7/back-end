@@ -20,6 +20,7 @@ const PostScam = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
+        required: true,
     },
     category: {
         type: String,
@@ -33,24 +34,41 @@ const PostScam = new mongoose.Schema({
         }
     },
     likes: [{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User"
-    }], 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+    }],
+
 
 }, {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
 });
+
+
+// Populate posts that belongs to this user when he/she get his/her profile 
+
+PostScam.virtual('comments', {
+    ref: 'comment',
+    foreignField: 'postid',
+    localField: '_id',
+});
+
 
 //model post 
 const Post = mongoose.model('post', PostScam)
+
+
+
+
 
 //validait create post 
 
 function valedatcrete(obj) {
     const Schema = joi.object({
         title: joi.string().trim().min(2).max(100).required(),
-        description:joi.string().trim().min(2).required(),
-        category:joi.string().trim().required(),
+        description: joi.string().trim().min(2).required(),
+        category: joi.string().trim().required(),
     })
     return Schema.validate(obj)
 }
@@ -59,8 +77,8 @@ function valedatcrete(obj) {
 function valedatupdate(obj) {
     const Schema = joi.object({
         title: joi.string().trim().min(2).max(100),
-        description:joi.string().trim().min(2),
-        category:joi.string().trim(),
+        description: joi.string().trim().min(2),
+        category: joi.string().trim(),
     })
     return Schema.validate(obj)
 }

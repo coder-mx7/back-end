@@ -45,7 +45,19 @@ const UserScam = new mongoose.Schema({
     },
 }, {
     timestamps: true,
-})
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  })
+
+// Populate posts that belongs to this user when he/she get his/her profile 
+
+UserScam.virtual('posts', {
+    ref: 'post',
+    localField: '_id',
+    foreignField: 'user',
+});
+
+
 
 //genrate token USER
 

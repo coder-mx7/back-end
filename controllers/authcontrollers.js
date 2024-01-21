@@ -1,5 +1,5 @@
 const asynchandler = require("express-async-handler")
-const { User, valadtoinrejsterd, valadtoinlogin } = require("../models/user")
+const { User, valadtoinrejsterd, valadtoinlogin } = require("../models/USER")
 const bcrypt = require('bcryptjs')
 const mongoose = require("mongoose")
 
@@ -11,16 +11,13 @@ const mongoose = require("mongoose")
  * @method post
  -------------------------------------*/
 
-
-
-
-
 module.exports.regsterd = asynchandler(async (req, res) => {
 
     //validation
     const { error } = valadtoinrejsterd(req.body)
     if (error) {
         return res.status(400).json({ message: error.details[0].message })
+        
     }
 
     //is user already exists
@@ -29,6 +26,7 @@ module.exports.regsterd = asynchandler(async (req, res) => {
     if (user) {
         return res.status(400).json({ message: 'this email is already exists' })
     }
+
 
     //hash the password
     const salt = await bcrypt.genSalt(10)
@@ -72,7 +70,7 @@ module.exports.login = asynchandler(async (req, res) => {
     const passwordmatch = await bcrypt.compare(req.body.passwored, user.passwored);
 
     if(!passwordmatch){
-        return res.status(404).json('this password or emali not found')
+        return res.status(400).json('this password or emali not found')
     }
 
     const token = user.generateAuthToken()
@@ -81,7 +79,8 @@ module.exports.login = asynchandler(async (req, res) => {
         _id:user._id,
         isAdmin:user.isAdmin,
         email:user.email,
-        photoprofile:user.photoprofile,
+        username:user.username,
+        profilePhoto:user.profilePhoto,
         token,
     })
 

@@ -25,18 +25,16 @@ function verifytokenandadmin(req, res, next) {
             next()
         } else {
             return res.status(403).json({ message: "not allowed, only admin" })
-
         }
     })
 }
 
 function verifytokenauthrztionandadmin(req, res, next) {
     verifytoken(req, res, () => {
-        if (req.user.id === req.params.id || req.user.isAdmin == true) {
+        if (req.user.id === req.params.id || req.user.isAdmin) {
             next()
         } else {
             return res.status(403).json({ message: "not allowed, only person or admin" })
-
         }
     })
 }

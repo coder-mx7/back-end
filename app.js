@@ -5,10 +5,10 @@ require('dotenv').config()
 // تفعيل middleware لفهم البيانات بصيغة JSON
 app.use(express.json());
 // const { notFound, erorHandler } = require('./middleware/errors')
-const  concatetodb  = require("./config/connact")
+const  concatetodb  = require("./config/connact");
+const { ErorrHanlder, notFound } = require('./middleware/error');
 // const ejs = require('ejs');
 app.use(cors()); 
-
 concatetodb() 
 
 
@@ -23,9 +23,12 @@ concatetodb()
 app.use('/api/auth',require('./routes/authRoute'))
 app.use('/api/users',require('./routes/userRoute'))
 app.use('/api/posts',require('./routes/postRoute'))
+app.use('/api/communte',require('./routes/commentRoute'))
+app.use('/api/categoty',require('./routes/categotyRoute'))
 
 //Erorr hanlder ùiddleware 
-
+app.use(notFound)
+app.use(ErorrHanlder) 
 // app.use(notFound)
 
 // app.use(erorHandler)

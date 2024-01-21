@@ -1,10 +1,12 @@
 const asynchandler = require("express-async-handler")
-const { User, valadtoinupdate } = require("../models/user")
+const { User, valadtoinupdate } = require("../models/USER")
 const bcrypt = require('bcryptjs')
 const mongoose = require("mongoose")
 const path = require("path")
 const fs = require("fs")
-const { cloudinaryremoveimage, cloudinaryuplodeimage } = require("../utils/cloudinary")
+const { Post } = require('../models/post')
+const { Communt } = require("../models/Communts")
+const { cloudinaryremoveimage, cloudinaryuplodeimage, cloudinaryMultipelremoveimage } = require("../utils/cloudinary")
 require('dotenv').config()
 
 /**-----------------------------------*
@@ -15,7 +17,7 @@ require('dotenv').config()
  -------------------------------------*/
 module.exports.getallusers = asynchandler(async (req, res) => {
 
-    const users = await User.find().select('-passwored')
+    const users = await User.find().select('-passwored').populate("posts")
     res.json(users)
 })
 
@@ -28,7 +30,7 @@ module.exports.getallusers = asynchandler(async (req, res) => {
 
 module.exports.getuserbyid = asynchandler(async (req, res) => {
 
-    const user = await User.findById(req.params.id).select('-passwored')
+    const user = await User.findById(req.params.id).select('-passwored').populate("posts")
     if (!user) {
         return res.status(404).json({ message: 'this Usernot found' })
     }
@@ -89,7 +91,7 @@ module.exports.uplodephotoprofil = asynchandler(async (req, res) => {
 
     //1.validate
     if (!req.file) {
-        return res.status(400).json('photo not uplod')
+        return res.status(400).json('photo not upload')
     }
 
     //2.get the path to the image
@@ -146,13 +148,23 @@ module.exports.delituserprofile = asynchandler(async(req,res)=>{
     }
 
     //2.get all user from dB
+    const posts = await Post.find({user:req.params.id})
     //3.get the public user ids from the posts
+    const idspublic = posts?.map((post)=>post.image.publicId)
     //4.delet all post image from cloudinary thar belong this user
+
+    if(idspublic?.length>0){
+        cloudinaryMultipelremoveimage(idspublic)
+    }
     //5.delet the profile picture from cloudinary 
 
     await cloudinaryremoveimage(user.profilePhoto.publicId)
 
     //6.delet user profile posts - comments
+
+    await Post.deleteMany({user:req.params.id})
+    await Communt.deleteMany({user:req.params.id})
+
     //7.delete the user himeself
     await User.findByIdAndDelete(req.params.id)
 

@@ -16,7 +16,7 @@ const photostorge = multer.diskStorage({
     }
 })
 
-//uplode photo 
+//uplode photo
 
 const uplodephoto = multer({
     storage: photostorge,
