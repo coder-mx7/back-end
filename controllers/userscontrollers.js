@@ -51,7 +51,8 @@ module.exports.updateUser = asynchandler(async (req, res) => {
     }
 
     if (req.body.passwored) {
-        const salt = await bcrypt.getSalt(10)
+        const salt = await bcrypt.genSalt(10)
+
         req.body.passwored = await bcrypt.hash(req.body.passwored, salt)
     }
     const updateUser = await User.findByIdAndUpdate(req.params.id, {
@@ -62,7 +63,7 @@ module.exports.updateUser = asynchandler(async (req, res) => {
         }
     }, {
         new: true,
-    }).select('-passwored')
+    })
     res.json(updateUser)
 })
 

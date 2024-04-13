@@ -4,6 +4,7 @@ const { cloudinaryremoveimage, cloudinaryuplodeimage, cloudinaryMultipelremoveim
 const asynchandler = require("express-async-handler")
 const { valedatcrete, valedatupdate, Post } = require('../models/post')
 const { Communt} = require("../models/Communts")
+const { post } = require("../routes/categotyRoute")
 
 /**-----------------------------------*
  * @description create new post 
@@ -28,11 +29,13 @@ module.exports.createnewpost = asynchandler(async (req, res) => {
     const imagepath = path.join(__dirname, `../images/${req.file.filename}`)
     const result = await cloudinaryuplodeimage(imagepath)
 
-    // 4.create new post and save it to DB
+    // 4.create new proudact and save it to DB
     const post = await Post.create({
         title: req.body.title,
         category: req.body.category,
         description: req.body.description,
+        pricReal: req.body.pricReal,
+        pricFake: req.body.pricFake,
         user: req.user.id,
         image: {
             url: result.secure_url,
@@ -40,13 +43,13 @@ module.exports.createnewpost = asynchandler(async (req, res) => {
         }
     })
     // 5.send the response to the client 
-    res.status(201).json(post)
+    res.status(201).json({post,sucss:true,})
     // 6.remove image from the server 
     fs.unlinkSync(imagepath)
 })
 
 /**-----------------------------------*
- * @description get posts
+ * @description get products
  * @rout /api/posts
  * @method get
  * @access public
@@ -191,7 +194,7 @@ module.exports.updatepostimagectrl = asynchandler(async (req, res) => {
     const post = await Post.findById(req.params.id)
 
     if (!post) {
-        return res.status(404).json({ message: "post not found" })
+        return res.status(404).json({ message: "المنتج غير متوفر حاول مرة اخرى او اعد نشر المنتج" })
     }
 
     //3.chek if this post belong to logged in user 
@@ -236,7 +239,7 @@ module.exports.updatepostimagectrl = asynchandler(async (req, res) => {
 module.exports.togglelikedpost = asynchandler(async (req, res) => {
     let post = await Post.findById(req.params.id)
     if (!post) {
-        return res.status(400).json({ message: "this post not found" })
+        return res.status(400).json({ message: "هذا المنتج غير متوفر " })
     }
     const isuserliked = post.likes.find((user) => user.toString() === req.user.id)
 
@@ -260,3 +263,33 @@ module.exports.togglelikedpost = asynchandler(async (req, res) => {
     res.status(200).json(post)
 
 })
+
+
+
+/**-----------------------------------*
+ * @description get posts by category
+ * @rout /api/categorys/category
+ * @method get
+ * @access public 
+ *  -------------------------------------*/
+
+module.exports.getpostsbycategory = asynchandler(async(req,res)=>{
+  // استخراج نوع الفئة المطلوبة من الطلب، يفترض هنا أنه يأتي كمعلمة query في طلب HTTP
+  const category = req.params.category;
+
+  // التحقق مما إذا كان تم توفير نوع الفئة في الطلب
+  if (!category) {
+      return res.status(400).json({ success: false, message: "نوع الفئة مطلوب" });
+  }
+
+  // البحث عن المنتجات بناءً على نوع الفئة المحدد
+  const categories = await Post.find({ category : category }).sort({ createdAt: -1 });
+
+  // التحقق مما إذا كانت هناك منتجات من  الفئات متاحة
+  if (!categories || categories.length === 0) {
+      return res.status(404).json({ success: false, message: "لا يوجد فئات متاحة لهذا النوع" });
+  }
+
+  // إرسال المنتجات كاستجابة
+  res.status(200).json({ success: true, data: categories });
+});
